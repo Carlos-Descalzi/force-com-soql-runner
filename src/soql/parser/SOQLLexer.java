@@ -1,4 +1,4 @@
-// Generated from /home/carlos/Proyectos/force-com-sql-runner/SOQL.g4 by ANTLR 4.1
+// Generated from /home/carlos/Proyectos/force-com-soql-runner/SOQL.g4 by ANTLR 4.1
 package soql.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;

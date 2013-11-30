@@ -11,33 +11,44 @@ import org.codehaus.jackson.JsonNode;
 
 public class ResultTableModel extends AbstractTableModel {
 
-	private List<JsonNode> rows = new ArrayList<>();
-	private List<String> columns = new ArrayList<>();
+	private List<List<String>> rows = new ArrayList<>();
 
-	public ResultTableModel(JsonNode result){
+	private List<String> fields;
+	public ResultTableModel(JsonNode result, List<String> fields){
 
+		this.fields = fields;
 		
 		for (int i=0;i<result.size();i++){
 			JsonNode row = result.get(i);
-			rows.add(row);
-			if (columns.isEmpty()){
-				for (Iterator<String> it = row.getFieldNames();it.hasNext();){
-					columns.add(it.next());
-				}
-			}
+			List<String> rowData = evaluateRow(row,fields);
+			rows.add(rowData);
+			
 		}
-		
-		columns.remove("attributes");
-		
+	}
+	private List<String> evaluateRow(JsonNode row, List<String> fields) {
+		List<String> result = new ArrayList<String>();
+		for (String field:fields){
+			
+			String[] tokens = StringUtils.split(field,".");
+			
+			JsonNode val = row;
+			
+			for (String token:tokens){
+				val = val.get(token);
+			}
+			
+			result.add(val != null ? val.asText() : "(null)");
+		}
+		return result;
 	}
 	@Override
 	public int getColumnCount() {
-		return columns.size();
+		return fields.size();
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return columns.get(column);
+		return fields.get(column);
 	}
 
 	@Override
@@ -47,19 +58,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int row, int column) {
-		JsonNode record = rows.get(row);
-		String colName = columns.get(column);
-		JsonNode col = record.get(colName);
-		
-		if (col.isTextual()){
-			return col.getTextValue();
-		}
-		
-		if (col.isObject()){
-			return formatObject(col);
-		}
-		
-		return col;
+		return rows.get(row).get(column);
 	}
 
 	private Object formatObject(JsonNode col) {
