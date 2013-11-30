@@ -9,37 +9,53 @@ import javax.swing.table.AbstractTableModel;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 
+@SuppressWarnings("serial")
 public class ResultTableModel extends AbstractTableModel {
 
-	private List<List<String>> rows = new ArrayList<>();
+	private List<List<Object>> rows = new ArrayList<>();
 
 	private List<String> fields;
 	public ResultTableModel(JsonNode result, List<String> fields){
 
 		this.fields = fields;
 		
+		List<String[]> fieldTokens = splitFieldTokens(fields);
+		
 		for (int i=0;i<result.size();i++){
 			JsonNode row = result.get(i);
-			List<String> rowData = evaluateRow(row,fields);
-			rows.add(rowData);
-			
+			rows.add(evaluateRow(row,fieldTokens));
 		}
 	}
-	private List<String> evaluateRow(JsonNode row, List<String> fields) {
-		List<String> result = new ArrayList<String>();
+	private List<String[]> splitFieldTokens(List<String> fields) {
+		List<String[]> fieldTokens = new ArrayList<>();
 		for (String field:fields){
-			
-			String[] tokens = StringUtils.split(field,".");
+			fieldTokens.add(StringUtils.split(field,"."));
+		}
+		return fieldTokens;
+	}
+	private List<Object> evaluateRow(JsonNode row, List<String[]> fieldTokens) {
+		List<Object> result = new ArrayList<Object>();
+		for (String[] field:fieldTokens){
 			
 			JsonNode val = row;
 			
-			for (String token:tokens){
+			for (String token:field){
 				val = val.get(token);
 			}
 			
-			result.add(val != null ? val.asText() : "(null)");
+			result.add(getValue(val));
 		}
 		return result;
+	}
+	private Object getValue(JsonNode val) {
+		if (val != null){
+			if (val.isBoolean()) return val.asBoolean();
+			if (val.isTextual()) return val.asText();
+			if (val.isInt()) return val.asInt();
+			if (val.isDouble()) return val.asDouble();
+			if (val.isLong()) return val.asLong();
+		}
+		return null;
 	}
 	@Override
 	public int getColumnCount() {
@@ -61,25 +77,4 @@ public class ResultTableModel extends AbstractTableModel {
 		return rows.get(row).get(column);
 	}
 
-	private Object formatObject(JsonNode col) {
-		if (col.isTextual()){
-			return col.getTextValue();
-		}
-		
-		List<String> items = new ArrayList<String>();
-		
-		for (Iterator<String> i = col.getFieldNames();i.hasNext();){
-			String fieldName = i.next();
-			
-			if (fieldName.equals("attributes")){
-				continue;
-			}
-			
-			JsonNode value = col.get(fieldName);
-			
-			items.add(fieldName+":"+formatObject(value));
-		}
-		
-		return "["+StringUtils.join(items,",")+"]";
-	}
 }

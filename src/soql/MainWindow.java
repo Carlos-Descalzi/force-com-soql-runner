@@ -74,6 +74,12 @@ public class MainWindow
 			export();
 		}
 	};
+	private Action exitAction = new AbstractAction(Globals.BUNDLE.getString("mainWindow.action.exit")){
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			exit();
+		}
+	};
 	
 	public static void main(String[] args){
 		new MainWindow().setVisible(true);;
@@ -160,6 +166,11 @@ public class MainWindow
 		toolBar.add(exportAction);
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
+		
+		JMenu fileMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.file"));
+		fileMenu.add(exitAction);
+		menuBar.add(fileMenu);
+		
 		JMenu queryMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.query"));
 		queryMenu.add(runAction);
 		menuBar.add(queryMenu);
@@ -205,7 +216,7 @@ public class MainWindow
 	
 	private ResultsView getSelectedResultsModel() {
 		int index = results.getSelectedIndex();
-		return (ResultsView)results.getTabComponentAt(index);
+		return (ResultsView)results.getComponentAt(index);
 	}
 
 	private File getFile() {
@@ -312,5 +323,9 @@ public class MainWindow
 		loginAction.setEnabled(client == null);
 		runAction.setEnabled(client != null);
 		exportAction.setEnabled(results.getSelectedIndex() != -1);
+	}
+	
+	public void exit(){
+		System.exit(0);
 	}
 }

@@ -24,10 +24,17 @@ public class CsvWriter {
 		
 		for (int i=0;i<model.getRowCount();i++){
 			for (int j=0;j<model.getColumnCount();j++){
-				if (i>0){
+				if (j>0){
 					writer.write(",");
 				}
-				writer.write(String.valueOf(model.getValueAt(i, j)));
+				
+				Object value = model.getValueAt(i, j);
+				
+				if (value instanceof String){
+					writer.write("\""+value+"\"");
+				} else if (value != null){
+					writer.write(String.valueOf(value));
+				}
 				
 			}
 			writer.write("\n");
