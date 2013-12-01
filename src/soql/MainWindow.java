@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -81,6 +83,13 @@ public class MainWindow
 			exit();
 		}
 	};
+	private Action aboutAction = new AbstractAction(Globals.BUNDLE.getString("mainWindow.action.about")){
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			showAboutDialog();
+		}
+
+	};
 	
 	public static void main(String[] args){
 		new MainWindow();
@@ -118,9 +127,9 @@ public class MainWindow
 	}
 
 	private void buildUI(){
-		JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		final JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		
-		JSplitPane topSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		final JSplitPane topSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		
 		queriesView.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e){
@@ -147,7 +156,7 @@ public class MainWindow
 		topSplit.setRightComponent(new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 		mainSplit.setTopComponent(topSplit);
 		
-		JSplitPane bottomSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		final JSplitPane bottomSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		results.setPreferredSize(new Dimension(800,400));
 		
 		JScrollPane logsPanel = new JScrollPane(logs,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -173,15 +182,22 @@ public class MainWindow
 		JMenu queryMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.query"));
 		queryMenu.add(runAction);
 		menuBar.add(queryMenu);
+	
+		JMenu helpMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.help"));
+		helpMenu.add(aboutAction);
+		menuBar.add(helpMenu);
 
-		setVisible(true);
 		setSize(getToolkit().getScreenSize());
-		
-		Dimension size = getSize();
-		
-		topSplit.setDividerLocation(size.width / 4);
-		mainSplit.setDividerLocation(size.height / 3);
-		bottomSplit.setDividerLocation(size.height  / 3);
+		addWindowListener(new WindowAdapter() {
+			
+			public void windowOpened(WindowEvent e){
+				Dimension size = getSize();
+				mainSplit.setDividerLocation(size.height / 3);
+				topSplit.setDividerLocation(size.width / 4);
+				bottomSplit.setDividerLocation(size.height  / 3);
+			}
+		});
+		setVisible(true);
 
 	}
 	
@@ -336,5 +352,10 @@ public class MainWindow
 	
 	public void exit(){
 		System.exit(0);
+	}
+	
+
+	private void showAboutDialog() {
+		new AboutDialog(this).setVisible(true);
 	}
 }

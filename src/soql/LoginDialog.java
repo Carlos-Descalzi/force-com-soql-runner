@@ -1,7 +1,6 @@
 package soql;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -97,8 +96,7 @@ public class LoginDialog extends JDialog {
 		add(buttons,BorderLayout.SOUTH);
 		
 		setSize(300,200);
-		Dimension screenSize = getToolkit().getScreenSize();
-		setLocation((screenSize.width-300)/2,(screenSize.height-200)/2);
+		UIUtils.center(this);
 	}
 	
 	private void accept(){

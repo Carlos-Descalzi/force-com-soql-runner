@@ -1,6 +1,5 @@
 package soql;
 
-import java.awt.Dimension;
 import java.awt.GridLayout;
 
 import javax.swing.JDialog;
@@ -18,8 +17,7 @@ public class WaitDialog
 	public WaitDialog(JFrame parent,final Runnable task){
 		super(parent,"",true);
 		setSize(200,100);
-		Dimension screenSize = getToolkit().getScreenSize();
-		setLocation((screenSize.width-200)/2,(screenSize.height-100)/2);
+		UIUtils.center(this);
 		
 		JLabel label = new JLabel("Wait please ...");
 		label.setHorizontalAlignment(JLabel.CENTER);
