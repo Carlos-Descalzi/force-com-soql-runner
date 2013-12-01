@@ -2,6 +2,7 @@ package soql;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -82,7 +83,7 @@ public class MainWindow
 	};
 	
 	public static void main(String[] args){
-		new MainWindow().setVisible(true);;
+		new MainWindow();
 	}
 	
 	public MainWindow(){
@@ -92,9 +93,6 @@ public class MainWindow
 		workingDir = System.getProperty("user.home")+File.separator+".query-runner";
 		new File(workingDir).mkdirs();
 		loadQueries();
-		
-		setSize(getToolkit().getScreenSize());
-		setState(JFrame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		updateStatus();
 	}
@@ -120,9 +118,9 @@ public class MainWindow
 	}
 
 	private void buildUI(){
-		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		
-		JSplitPane top = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		JSplitPane topSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		
 		queriesView.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e){
@@ -145,20 +143,21 @@ public class MainWindow
 						cellHasFocus);
 			}
 		});
-		top.setLeftComponent(new JScrollPane(queriesView,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-		top.setRightComponent(new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-		top.setDividerLocation(400);
-		split.setTopComponent(top);
+		topSplit.setLeftComponent(new JScrollPane(queriesView,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		topSplit.setRightComponent(new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		mainSplit.setTopComponent(topSplit);
 		
-		JSplitPane bottom = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		bottom.setTopComponent(results);
-		bottom.setBottomComponent(new JScrollPane(logs,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		JSplitPane bottomSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		results.setPreferredSize(new Dimension(800,400));
 		
-		
-		split.setBottomComponent(bottom);
-		split.setDividerLocation(400);
+		JScrollPane logsPanel = new JScrollPane(logs,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		logsPanel.setPreferredSize(new Dimension(800,200));
+
+		bottomSplit.setTopComponent(results);
+		bottomSplit.setBottomComponent(logsPanel);
+		mainSplit.setBottomComponent(bottomSplit);
 		setLayout(new BorderLayout());
-		add(split,BorderLayout.CENTER);
+		add(mainSplit,BorderLayout.CENTER);
 		JToolBar toolBar = new JToolBar();
 		add(toolBar,BorderLayout.NORTH);
 		toolBar.add(loginAction);
@@ -174,6 +173,15 @@ public class MainWindow
 		JMenu queryMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.query"));
 		queryMenu.add(runAction);
 		menuBar.add(queryMenu);
+
+		setVisible(true);
+		setSize(getToolkit().getScreenSize());
+		
+		Dimension size = getSize();
+		
+		topSplit.setDividerLocation(size.width / 4);
+		mainSplit.setDividerLocation(size.height / 3);
+		bottomSplit.setDividerLocation(size.height  / 3);
 
 	}
 	
@@ -314,7 +322,8 @@ public class MainWindow
 		parser.addParseListener(evaluator);
 		parser.query();
 		List<String> fields = evaluator.getFields();
-		results.addTab(query, new ResultsView(records,fields));
+		results.add(new ResultsView(records,fields));
+		results.setTabComponentAt(results.getTabCount()-1, new Tab(results, query));
 		results.setSelectedIndex(results.getTabCount()-1);
 		updateStatus();
 	}

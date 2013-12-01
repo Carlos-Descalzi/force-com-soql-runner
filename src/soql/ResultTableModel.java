@@ -1,7 +1,6 @@
 package soql;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -76,5 +75,5 @@ public class ResultTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int column) {
 		return rows.get(row).get(column);
 	}
-
+	
 }
