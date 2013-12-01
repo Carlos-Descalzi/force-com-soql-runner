@@ -1,0 +1,3 @@
+CP=lib\log4j.jar;lib\httpclient-4.2.3.jar;lib\asm-3.1.jar;lib\jmx-utils.jar;lib\jersey-client-1.17.1.jar;lib\jersey-core-1.17.1.jar;lib\jackson-xc-1.9.2.jar;lib\httpcore-4.2.2.jar;lib\jersey-json-1.17.1.jar;lib\commons-codec.jar;lib\jackson-mapper-asl-1.9.2.jar;lib\jersey-servlet-1.17.1.jar;lib\jackson-core-asl-1.9.2.jar;lib\jersey-server-1.17.1.jar;lib\commons-io.jar;lib\commons-logging.jar;lib\commons-lang.jar;lib\jython-standalone-2.5.3.jar;lib\jettison-1.1.jar;lib\antlr-4.1-complete.jar;lib\jsr311-api-1.1.1.jar;lib\jackson-jaxrs-1.9.2.jar;force-com-soql-runner.jar
+
+java -classpath %CP% soql.MainWindow
