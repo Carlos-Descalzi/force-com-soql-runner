@@ -19,6 +19,7 @@
 
 	<target name="package" depends="compile">
 		<jar destfile="${ant.project.name}.jar">
+			<zipfileset dir="${src.dir}" includes="**/*.properties"/>
 			<zipfileset dir="${bin.dir}" includes="**/**"/>
 		</jar>
 	</target>
