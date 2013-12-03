@@ -40,6 +40,9 @@ public class ResultTableModel extends AbstractTableModel {
 			
 			for (String token:field){
 				val = val.get(token);
+				if (val == null){
+					break;
+				}
 			}
 			
 			result.add(getValue(val));

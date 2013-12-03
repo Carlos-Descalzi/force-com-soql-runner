@@ -20,6 +20,7 @@ import soql.parser.SOQLParser.SimpleConditionContext;
 import soql.parser.SOQLParser.ValueContext;
 
 public class QueryEvaluator implements SOQLListener {
+	private boolean collectFields = false;
 	private List<String> fields = new ArrayList<String>();
 
 	
@@ -70,7 +71,7 @@ public class QueryEvaluator implements SOQLListener {
 
 	@Override
 	public void exitField(FieldContext ctx) {
-		fields.add(ctx.getText());
+		if (collectFields) fields.add(ctx.getText());
 	}
 
 	@Override
@@ -120,9 +121,13 @@ public class QueryEvaluator implements SOQLListener {
 	public void exitLiteral(LiteralContext ctx) {}
 
 	@Override
-	public void enterFields(FieldsContext ctx) {}
+	public void enterFields(FieldsContext ctx) {
+		collectFields = true;
+	}
 
 	@Override
-	public void exitFields(FieldsContext ctx) {}
+	public void exitFields(FieldsContext ctx) {
+		collectFields = false;
+	}
 	
 }

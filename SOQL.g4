@@ -41,21 +41,21 @@ literal:
        | BOOLEAN
        ;
 
-SELECT: 'select';
-IN:'in';
+SELECT: [sS][eE][lL][eE][cC][tT];
+IN:[iI][nN];
 COMMA: ',';
 DOT: '.';
 
-AND: 'and';
-OR:'or';
-NOT:'not';
+AND: [aA][nN][dD];
+OR:[oO][rR];
+NOT:[nN][oO][tT];
 
-FROM: 'from';
+FROM: [fF][rR][oO][mM];
 
-WHERE: 'where';
+WHERE: [wW][hH][eE][rR][eE];
 
-ORDER: 'order';
-BY: 'by';
+ORDER: [oO][rR][dD][eE][rR];
+BY: [bB][yY];
 
 ID: ('a'..'z'|'A'..'Z'|'_')+;
     
@@ -65,7 +65,7 @@ LPAR: '(';
 RPAR: ')';
 
 
-BOOLEAN: ('true' | 'false');
+BOOLEAN: ([tT][rR][uU][eE] | [fF][aA][lL][sS][eE]);
 
 NUMERIC:    ('1'..'9') ('0'..'9')* ('.' ('0'..'9')*)?;
 
