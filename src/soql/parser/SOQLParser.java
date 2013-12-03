@@ -19,9 +19,9 @@ public class SOQLParser extends Parser {
 		BY=11, ID=12, STRING=13, LPAR=14, RPAR=15, BOOLEAN=16, NUMERIC=17, OPERATOR=18, 
 		WS=19;
 	public static final String[] tokenNames = {
-		"<INVALID>", "'select'", "'in'", "','", "'.'", "'and'", "'or'", "'not'", 
-		"'from'", "'where'", "'order'", "'by'", "ID", "STRING", "'('", "')'", 
-		"BOOLEAN", "NUMERIC", "OPERATOR", "WS"
+		"<INVALID>", "SELECT", "IN", "','", "'.'", "AND", "OR", "NOT", "FROM", 
+		"WHERE", "ORDER", "BY", "ID", "STRING", "'('", "')'", "BOOLEAN", "NUMERIC", 
+		"OPERATOR", "WS"
 	};
 	public static final int
 		RULE_query = 0, RULE_fields = 1, RULE_field = 2, RULE_obj = 3, RULE_conditions = 4, 
