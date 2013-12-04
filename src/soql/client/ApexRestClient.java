@@ -48,6 +48,8 @@ public class ApexRestClient {
 	private ObjectMapper mapper;
 	
 	private String queryURL;
+	private String serviceURL;
+	
 	public ApexRestClient(String instance,String applicationPackage, String clientId, String clientSecret, String user, String password){
 		
 		this.clientId = clientId;
@@ -55,7 +57,7 @@ public class ApexRestClient {
 		this.user = user;
 		this.password = password;
 		this.queryURL = "https://"+instance+".salesforce.com/services/data/v28.0/query/";
-		
+		this.serviceURL = "https://"+instance+".salesforce.com/services/data/v29.0/";
 		
 		try {
 			SSLSocketFactory socketFactory = new SSLSocketFactory(
@@ -130,7 +132,23 @@ public class ApexRestClient {
 	private String doGetQuery(String request) throws ApexRestException{
 		return execute(new HttpGet(queryURL+request));
 	}
-	
+	public JsonNode doServiceGet(String request)
+		throws ApexRestException{
+		String result;
+		result = execute(new HttpGet(serviceURL+request));
+		
+		if (StringUtils.isBlank(result)){
+			return null;
+		}
+
+		try {
+			return mapper.readTree(result);
+		}catch (IOException ex){
+			throw new ApexRestException(ex);
+		}
+		
+	}
+
 	private String execute(HttpUriRequest request) throws ApexRestException {
 		request.setHeader("Authorization", "Bearer "+getToken());
 		try {

@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -39,6 +40,8 @@ import org.antlr.v4.runtime.BufferedTokenStream;
 import org.codehaus.jackson.JsonNode;
 
 import soql.LoginDialog.Response;
+import soql.SObjectTree.Selection;
+import soql.SObjectTreeModel.Field;
 import soql.client.ApexRestClient;
 import soql.editor.SOQLEditor;
 import soql.parser.SOQLLexer;
@@ -55,6 +58,7 @@ public class MainWindow
 
 	private DefaultListModel<String> queries = new DefaultListModel<>();
 	private JList<String> queriesView = new JList<String>(queries);
+	private SObjectTree objectsInfo = new SObjectTree();
 	private ApexRestClient client; 
 	private String workingDir;
 	private JFileChooser chooser;
@@ -131,6 +135,8 @@ public class MainWindow
 		
 		final JSplitPane topSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		
+		JTabbedPane leftPanel = new JTabbedPane();
+		
 		queriesView.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e){
 				if (e.getClickCount() == 2 && queriesView.getSelectedIndex() != -1){
@@ -152,7 +158,17 @@ public class MainWindow
 						cellHasFocus);
 			}
 		});
-		topSplit.setLeftComponent(new JScrollPane(queriesView,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		objectsInfo.addSObjectTreeListener(new SObjectTreeListener() {
+			
+			@Override
+			public void queryCreationRequested(SObjectTreeEvent event) {
+				createQuery(event.getSelection());
+				
+			}
+		});
+		leftPanel.addTab("Queries", new JScrollPane(queriesView,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		leftPanel.addTab("Objects", objectsInfo);
+		topSplit.setLeftComponent(leftPanel);
 		topSplit.setRightComponent(new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 		mainSplit.setTopComponent(topSplit);
 		
@@ -198,9 +214,26 @@ public class MainWindow
 			}
 		});
 		setVisible(true);
-
+		setExtendedState(JFrame.MAXIMIZED_BOTH);
 	}
 	
+	protected void createQuery(Selection selection) {
+		
+		StringBuilder b = new StringBuilder();
+		b.append("select ");
+		for (Iterator<Field> i = selection.getFields().iterator();i.hasNext();){
+			b.append(i.next().getName());
+			if (i.hasNext()){
+				b.append(",");
+			}
+		}
+		b.append(" from ");
+		b.append(selection.getObject().getName());
+		
+		queryEditor.setText(b.toString());
+		
+	}
+
 	private void login(){
 		
 		final LoginDialog login = new LoginDialog(this);
@@ -216,13 +249,16 @@ public class MainWindow
 						login.getPassword());
 					try {
 						client.init();
+						objectsInfo.setClient(client);
 					} catch (Exception e) {
 						logs.setText(logs.getText()+"\n"+e.getMessage());
 						e.printStackTrace();
 						client = null;
 					}
+					
 					updateStatus();
 				}
+
 			});
 		}
 
@@ -353,8 +389,8 @@ public class MainWindow
 	public void exit(){
 		System.exit(0);
 	}
-	
 
+	
 	private void showAboutDialog() {
 		new AboutDialog(this).setVisible(true);
 	}
