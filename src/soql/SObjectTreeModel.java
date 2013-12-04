@@ -1,7 +1,6 @@
 package soql;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
@@ -29,7 +28,6 @@ public class SObjectTreeModel implements TreeModel {
 		public Field(JsonNode node){
 			this.node = node;
 		}
-		
 		public String getName(){
 			return node.get("name").getTextValue();
 		}
@@ -54,11 +52,15 @@ public class SObjectTreeModel implements TreeModel {
 		public boolean isCustom() {
 			return node.get("custom").asBoolean();
 		}
+		public boolean isLoading(){
+			return loading;
+		}
 	}
 	
 	@SuppressWarnings("rawtypes")
 	private void fill(final SObject object){
 		object.loading = true;
+		fireNodeChanged(object);
 		new SwingWorker() {
 
 			@Override
@@ -86,6 +88,7 @@ public class SObjectTreeModel implements TreeModel {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
+				fireNodeChanged(object);
 				fireChange(object);
 			}
 		});
@@ -181,6 +184,13 @@ public class SObjectTreeModel implements TreeModel {
 		TreeModelEvent event = new TreeModelEvent(this, new Object[]{ROOT});
 		for (TreeModelListener listener:listeners){
 			listener.treeStructureChanged(event);
+		}
+	}
+	
+	private void fireNodeChanged(SObject node){
+		TreeModelEvent event = new TreeModelEvent(this, new Object[]{ROOT,node});
+		for (TreeModelListener listener:listeners){
+			listener.treeNodesChanged(event);
 		}
 	}
 	
