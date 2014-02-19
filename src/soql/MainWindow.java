@@ -9,20 +9,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -41,25 +35,27 @@ import org.codehaus.jackson.JsonNode;
 
 import soql.LoginDialog.Response;
 import soql.SObjectTree.Selection;
-import soql.SObjectTreeModel.Field;
 import soql.client.ApexRestClient;
+import soql.client.ApexRestException;
 import soql.editor.SOQLEditor;
 import soql.parser.SOQLLexer;
 import soql.parser.SOQLParser;
 
 @SuppressWarnings("serial")
 public class MainWindow 
-	extends JFrame{
+	extends JFrame
+	implements RequestQueueExceptionLogger{
 
 	
 	private SOQLEditor queryEditor = new SOQLEditor();
 	private JTextPane logs = new JTextPane();
 	private JTabbedPane results = new JTabbedPane();
 
-	private DefaultListModel<String> queries = new DefaultListModel<>();
+	private QueriesModel queries = new QueriesModel();
 	private JList<String> queriesView = new JList<String>(queries);
 	private SObjectTree objectsInfo = new SObjectTree();
-	private ApexRestClient client; 
+	private RequestQueue queue;
+//	private ApexRestClient client; 
 	private String workingDir;
 	private JFileChooser chooser;
 
@@ -111,23 +107,8 @@ public class MainWindow
 	}
 	
 	private void loadQueries() {
-		Properties p = new Properties();
 		File file = new File(workingDir,"queries");
-		if (file.exists()){
-			try (InputStream in = new FileInputStream(file)){
-				p.load(in);
-			}catch(Exception ex){
-				ex.printStackTrace();
-			}
-			
-			for (int i=0;;i++){
-				String query = p.getProperty("q"+i);
-				if (query == null){
-					break;
-				}
-				queries.addElement(query);
-			}
-		}
+		queries.load(file);
 	}
 
 	private void buildUI(){
@@ -241,7 +222,7 @@ public class MainWindow
 		if (login.run() == Response.OK){
 			runLong(new Runnable(){
 				public void run(){
-					client = new ApexRestClient(
+					ApexRestClient client = new ApexRestClient(
 						"na15", "", 
 						login.getClientId(), 
 						login.getClientSecret(), 
@@ -249,12 +230,14 @@ public class MainWindow
 						login.getPassword());
 					try {
 						client.init();
-						objectsInfo.setClient(client);
+						queue = new RequestQueue(client,MainWindow.this);
+						objectsInfo.setRequestQueue(queue);
 					} catch (Exception e) {
 						logs.setText(logs.getText()+"\n"+e.getMessage());
 						e.printStackTrace();
 						client = null;
 					}
+					
 					
 					updateStatus();
 				}
@@ -321,49 +304,47 @@ public class MainWindow
 		
 		saveQuery(query);
 
-		runLong(new Runnable() {
+		runLong(new Request() {
 			
 			@Override
-			public void run() {
+			public void process(ApexRestClient client) throws ApexRestException{
 				try {
 					JsonNode result = client.doQuery(query.replaceAll("[\n\t ]+", " "));
 					
 					JsonNode records = result.get("records");
 					
 					showRecords(query,records);
+				}catch (ApexRestException ex){
+					throw ex;
 				}catch (Exception ex){
 					logs.setText(logs.getText()+"\n"+ex.getMessage());
 					ex.printStackTrace();
+				} finally {
+					runAction.setEnabled(true);
 				}
-				runAction.setEnabled(true);
 			}
 		});
 	}
+
 	
+	
+	@Override
+	public void apexException(ApexRestException exception) {
+		logs.setText(logs.getText()+"\n"+exception.getMessage());
+		exception.printStackTrace();
+		
+	}
+
 	private void runLong(Runnable runnable){
 		new WaitDialog(this, runnable);
 	}
+	private void runLong(Request request){
+		new WaitDialog(this, queue, request);
+	}
 	
 	private void saveQuery(String query){
-
-		for (int i=0;i<queries.getSize();i++){
-			if (queries.getElementAt(i).equals(query)){
-				return;
-			}
-		}
-		
-		queries.addElement(query);
-		
-		Properties p = new Properties();
-		for (int i=0;i<queries.getSize();i++){
-			p.setProperty("q"+i, queries.getElementAt(i));
-		}
-		try (OutputStream out = new FileOutputStream(new File(workingDir,"queries"))){
-			p.store(out, "");
-		}catch(Exception ex){
-			logs.setText(logs.getText()+"\n"+ex.getMessage());
-			ex.printStackTrace();
-		}
+		queries.addQuery(query);
+		queries.save(new File(workingDir,"queries"));
 	}
 
 	private void showRecords(String query,final JsonNode records) throws Exception{
@@ -381,8 +362,8 @@ public class MainWindow
 	}
 	
 	private void updateStatus(){
-		loginAction.setEnabled(client == null);
-		runAction.setEnabled(client != null);
+		loginAction.setEnabled(queue == null);
+		runAction.setEnabled(queue != null);
 		exportAction.setEnabled(results.getSelectedIndex() != -1);
 	}
 	

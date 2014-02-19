@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -13,71 +12,38 @@ import javax.swing.tree.TreePath;
 import org.codehaus.jackson.JsonNode;
 
 import soql.client.ApexRestClient;
+import soql.client.ApexRestException;
 
 public class SObjectTreeModel implements TreeModel {
 
-	private ApexRestClient client;
+	private RequestQueue queue;
 	private static final String ROOT = Globals.BUNDLE.getString("sobjectTreeModel.root");
 	private List<SObject> objects = new ArrayList<>();
 	private List<SObject> allObjects = new ArrayList<>();
 	private List<TreeModelListener> listeners = new ArrayList<>();
 	
-	public class Field {
-		private JsonNode node;
-		
-		public Field(JsonNode node){
-			this.node = node;
-		}
-		public String getName(){
-			return node.get("name").getTextValue();
-		}
-		public String toString(){
-			return getName() + " ("+node.get("type").getTextValue()+")";
-		}
-	}
-	
-	public class SObject{
-		private JsonNode node;
-		private List<Field> fields = null;
-		private boolean loading = false;
-		public SObject(JsonNode node){
-			this.node = node;
-		}
-		public String getName(){
-			return node.get("name").getTextValue();
-		}
-		public String toString(){
-			return getName();
-		}
-		public boolean isCustom() {
-			return node.get("custom").asBoolean();
-		}
-		public boolean isLoading(){
-			return loading;
-		}
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private void fill(final SObject object){
+	private void fill(final SObject object) {
 		object.loading = true;
 		fireNodeChanged(object);
-		new SwingWorker() {
-
-			@Override
-			protected Object doInBackground() throws Exception {
-				try {
-					doFillObject(object);
-				}catch(Exception e){
-					e.printStackTrace();
-					throw e;
+		
+		try {
+			queue.enqueue(new Request(){
+				public void process(ApexRestClient client) throws ApexRestException{
+					try {
+						doFillObject(client, object);
+					} catch (ApexRestException ex){
+						throw ex;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				return null;
-			}
-			
-		}.execute();
+			});
+		} catch (InterruptedException e1) {
+		}
+		
 	}
 	
-	protected void doFillObject(final SObject object) throws Exception{
+	protected void doFillObject(ApexRestClient client, final SObject object) throws Exception{
 		JsonNode result = client.doServiceGet("sobjects/"+object.getName()+"/describe");
 		JsonNode fields = result.get("fields");
 		object.fields = new ArrayList<>();
@@ -94,13 +60,32 @@ public class SObjectTreeModel implements TreeModel {
 		});
 	}
 
-	public SObjectTreeModel(ApexRestClient client,JsonNode rootNode){
-		this.client = client;
-		JsonNode nodes = rootNode.get("sobjects");
-		for (int i=0;i<nodes.size();i++){
-			SObject object = new SObject(nodes.get(i)); 
-			objects.add(object);
-			allObjects.add(object);
+	public SObjectTreeModel(RequestQueue queue){
+		this.queue = queue;
+		
+		try {
+			this.queue.enqueue(new Request(){
+				public void process(ApexRestClient client) throws ApexRestException{
+					final JsonNode rootNode = client.doServiceGet("sobjects");
+
+					
+					JsonNode nodes = rootNode.get("sobjects");
+					for (int i=0;i<nodes.size();i++){
+						SObject object = new SObject(nodes.get(i)); 
+						objects.add(object);
+						allObjects.add(object);
+					}
+					
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run(){
+							fireNodesAdded();
+						}
+					});
+				}
+			});
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}

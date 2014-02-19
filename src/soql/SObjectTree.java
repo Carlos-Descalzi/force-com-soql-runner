@@ -17,20 +17,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.codehaus.jackson.JsonNode;
-
-import soql.SObjectTreeModel.Field;
-import soql.SObjectTreeModel.SObject;
-import soql.client.ApexRestClient;
-
-@SuppressWarnings({"serial","rawtypes"})
+@SuppressWarnings({"serial"})
 public class SObjectTree extends JPanel {
 
 	private Action createQueryAction = new AbstractAction(Globals.BUNDLE.getString("sobjectTree.action.createQuery")) {
@@ -70,24 +62,9 @@ public class SObjectTree extends JPanel {
 		add(new JScrollPane(tree,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),BorderLayout.CENTER);
 	}
 
-	public void setClient(final ApexRestClient client){
-		tree.setModel(new DummyModel(Globals.BUNDLE.getString("sobjectTree.loading")));
-		
-		new SwingWorker() {
-			@Override
-			protected Object doInBackground() throws Exception {
-				final JsonNode sobjects = client.doServiceGet("sobjects");
-				SwingUtilities.invokeLater(new Runnable(){
-					public void run(){
-						tree.setModel(new SObjectTreeModel(client,sobjects));
-						onlyCustom.setEnabled(true);
-					}
-				});
-				return null;
-			}
-		}.execute();
-
-			
+	public void setRequestQueue(final RequestQueue queue){
+		tree.setModel(new SObjectTreeModel(queue));
+		onlyCustom.setEnabled(true);
 	}
 
 	private void filterTree() {
