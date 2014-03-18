@@ -25,9 +25,27 @@ public class ResultTableModel extends AbstractTableModel {
 		
 		for (int i=0;i<result.size();i++){
 			JsonNode row = result.get(i);
-			rows.add(evaluateRow(row,fieldTokens));
+			rows.add(evaluateRow(row,fieldTokens,fields));
 		}
 	}
+	
+	
+	@Override
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		return getColumnClass(columnIndex) == SubqueryResultTableModel.class;
+	}
+
+
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		if (rows.isEmpty()){
+			return String.class;
+		}
+		Object value = rows.get(0).get(columnIndex);
+		return value == null ? String.class : value.getClass();
+	}
+
+
 	private List<String[]> splitFieldTokens(QueryObject fields) {
 		List<String[]> fieldTokens = new ArrayList<>();
 		for (Term field:fields.getTerms()){
@@ -35,9 +53,15 @@ public class ResultTableModel extends AbstractTableModel {
 		}
 		return fieldTokens;
 	}
-	private List<Object> evaluateRow(JsonNode row, List<String[]> fieldTokens) {
+	private List<Object> evaluateRow(JsonNode row, List<String[]> fieldTokens, QueryObject fields) {
 		List<Object> result = new ArrayList<Object>();
-		for (String[] field:fieldTokens){
+		
+		
+		for (int i=0;i<fieldTokens.size();i++){
+			
+			String[] field = fieldTokens.get(i);
+			
+			Term term = fields.getTerms().get(i);
 			
 			JsonNode val = row;
 			
@@ -48,19 +72,23 @@ public class ResultTableModel extends AbstractTableModel {
 				}
 			}
 			
-			result.add(getValue(val));
+			result.add(getValue(val,term));
 		}
 		return result;
 	}
-	private Object getValue(JsonNode val) {
+	private Object getValue(JsonNode val, Term term) {
 		if (val != null){
 			if (val.isBoolean()) return val.asBoolean();
 			if (val.isTextual()) return val.asText();
 			if (val.isInt()) return val.asInt();
 			if (val.isDouble()) return val.asDouble();
 			if (val.isLong()) return val.asLong();
+			if (val.isObject()) return createSubList(val,(QueryObject)term);
 		}
 		return null;
+	}
+	private Object createSubList(JsonNode val, QueryObject term) {
+		return new SubqueryResultTableModel(val.get("records"), term);
 	}
 	@Override
 	public int getColumnCount() {

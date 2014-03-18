@@ -27,6 +27,8 @@ public class ResultsView
 	public ResultsView(JsonNode records, QueryObject fields){
 		setLayout(new BorderLayout());
 		model = new ResultTableModel(records,fields);
+		table.setDefaultRenderer(SubqueryResultTableModel.class, new SubQueryResultsRenderer());
+		table.setDefaultEditor(SubqueryResultTableModel.class, new SubQueryResultsRenderer());
 		table.setModel(model);
 		table.setCellSelectionEnabled(true);
 		table.setRowSorter(new TableRowSorter<>(model));

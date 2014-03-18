@@ -36,9 +36,10 @@ public class QueriesModel implements ListModel<String> {
 	}
 	
 	public void addQuery(String query){
-		if (!queries.contains(query)){
-			queries.add(0,query);
+		if (queries.contains(query)){
+			queries.remove(query);
 		}
+		queries.add(0,query);
 		ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, 0);
 		for (ListDataListener listener:listeners){
 			listener.intervalAdded(event);
@@ -65,7 +66,9 @@ public class QueriesModel implements ListModel<String> {
 				NodeList queriesNodes = (NodeList)xpath.evaluate("/queries/query",doc,XPathConstants.NODESET);
 				
 				for (int i=0;i<queriesNodes.getLength();i++){
-					queries.add(queriesNodes.item(i).getFirstChild().getNodeValue());
+					try {
+						queries.add(queriesNodes.item(i).getFirstChild().getNodeValue());
+					} catch (Exception ex){}
 				}
 			}catch (Exception ex){
 				ex.printStackTrace();

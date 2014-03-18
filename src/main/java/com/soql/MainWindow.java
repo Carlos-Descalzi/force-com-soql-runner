@@ -16,6 +16,7 @@ import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -142,7 +143,7 @@ public class MainWindow
 			}
 		}
 	}
-
+	
 	public MainWindow(){
 		super(Globals.BUNDLE.getString("mainWindow.title"));
 		buildUI();
@@ -241,7 +242,7 @@ public class MainWindow
 		});
 		setVisible(true);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
-		
+
 		createEditor();
 	}
 	
@@ -262,12 +263,18 @@ public class MainWindow
 				updateStatus();
 			}
 		});
-		
-		queryTabs.add(new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-		queryTabs.setTabComponentAt(queryTabs.getTabCount()-1, new Tab(queryTabs, ""));
-		queryTabs.setSelectedIndex(queryTabs.getTabCount()-1);
+
+		addTab(queryTabs,"New Query",new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 
 		return queryEditor;
+	}
+	
+	private void addTab(JTabbedPane tabbedPane,String label, JComponent content){
+		tabbedPane.add(content);
+		final Tab tab = new Tab(tabbedPane,label);
+		
+		tabbedPane.setTabComponentAt(tabbedPane.getTabCount()-1, tab);
+		tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
 	}
 	
 	protected void createQuery(Selection selection) {
