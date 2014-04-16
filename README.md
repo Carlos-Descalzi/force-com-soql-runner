@@ -9,4 +9,5 @@ Features
 * Stores all the queries done.
 * Syntax coloring.
 * Export to CSV.
+* Results for subqueries.
 

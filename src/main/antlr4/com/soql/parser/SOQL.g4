@@ -1,15 +1,24 @@
 grammar SOQL;
 
 
-query:  SELECT fields FROM obj (WHERE conditions)? (ORDER BY fields)?
+query:  SELECT terms FROM obj (WHERE conditions)? (GROUP BY fields)? (HAVING conditions)? (ORDER BY fields)?
      ;
 
-fields: term (COMMA term)*
+terms: term (COMMA term)*
     ;
 
-term: field | subquery
+fields: field (COMMA field)*
 	;
 
+term: fieldTerm | subquery
+	;
+
+fieldTerm: field | funcRef (ALIAS)?
+	;
+	
+funcRef: ID LPAR term RPAR 
+	;
+	
 field: ID (DOT ID)*
 	;
 
@@ -58,7 +67,12 @@ WHERE: [wW][hH][eE][rR][eE];
 ORDER: [oO][rR][dD][eE][rR];
 BY: [bB][yY];
 
+HAVING: [hH][aA][vV][iI][nN][gG];
+
+GROUP: [gG][rR][oO][uU][pP];
+
 ID: ('a'..'z'|'A'..'Z'|'_')+;
+ALIAS: ('a'..'z'|'A'..'Z'|'_')+;
     
 STRING: '\''(~('\\'|'\''))* '\'';
 
