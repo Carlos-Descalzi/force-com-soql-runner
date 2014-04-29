@@ -8,27 +8,29 @@ import javax.swing.table.AbstractTableModel;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 
-import com.soql.query.QueryObject;
+import com.soql.query.Query;
 import com.soql.query.Term;
 
 @SuppressWarnings("serial")
 public class ResultTableModel extends AbstractTableModel {
 
 	private List<List<Object>> rows = new ArrayList<>();
+	private Query query;
+	public ResultTableModel(JsonNode result, Query query){
 
-	private QueryObject fields;
-	public ResultTableModel(JsonNode result, QueryObject fields){
-
-		this.fields = fields;
+		this.query = query;
 		
-		List<String[]> fieldTokens = splitFieldTokens(fields);
+		List<String[]> fieldTokens = splitFieldTokens(query);
 		
 		for (int i=0;i<result.size();i++){
 			JsonNode row = result.get(i);
-			rows.add(evaluateRow(row,fieldTokens,fields));
+			rows.add(evaluateRow(row,fieldTokens,query));
 		}
 	}
 	
+	public Term getTerm(int columnIndex){
+		return query.getTerms().get(columnIndex);
+	}
 	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -46,14 +48,14 @@ public class ResultTableModel extends AbstractTableModel {
 	}
 
 
-	private List<String[]> splitFieldTokens(QueryObject fields) {
+	private List<String[]> splitFieldTokens(Query fields) {
 		List<String[]> fieldTokens = new ArrayList<>();
 		for (Term field:fields.getTerms()){
 			fieldTokens.add(StringUtils.split(field.getName(),"."));
 		}
 		return fieldTokens;
 	}
-	private List<Object> evaluateRow(JsonNode row, List<String[]> fieldTokens, QueryObject fields) {
+	private List<Object> evaluateRow(JsonNode row, List<String[]> fieldTokens, Query fields) {
 		List<Object> result = new ArrayList<Object>();
 		
 		
@@ -83,21 +85,21 @@ public class ResultTableModel extends AbstractTableModel {
 			if (val.isInt()) return val.asInt();
 			if (val.isDouble()) return val.asDouble();
 			if (val.isLong()) return val.asLong();
-			if (val.isObject()) return createSubList(val,(QueryObject)term);
+			if (val.isObject()) return createSubList(val,(Query)term);
 		}
 		return null;
 	}
-	private Object createSubList(JsonNode val, QueryObject term) {
+	private Object createSubList(JsonNode val, Query term) {
 		return new SubqueryResultTableModel(val.get("records"), term);
 	}
 	@Override
 	public int getColumnCount() {
-		return fields.getTerms().size();
+		return query.getTerms().size();
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return fields.getTerms().get(column).getName();
+		return query.getTerms().get(column).getName();
 	}
 
 	@Override
@@ -109,5 +111,26 @@ public class ResultTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int column) {
 		return rows.get(row).get(column);
 	}
+
+	public Query getQuery() {
+		return query;
+	}
 	
+	public List<List<Object>> getRawData(){
+		List<List<Object>> rawData = new ArrayList<List<Object>>();
+		
+		for (int i=0;i<getRowCount();i++){
+			List<Object> row = new ArrayList<Object>();
+			for (int j=0;j<getColumnCount();j++){
+				Object value = getValueAt(i, j);
+				if (value instanceof ResultTableModel){
+					row.add(((ResultTableModel)value).getRawData());
+				} else {
+					row.add(value);
+				}
+			}
+			rawData.add(row);
+		}
+		return rawData;
+	}
 }

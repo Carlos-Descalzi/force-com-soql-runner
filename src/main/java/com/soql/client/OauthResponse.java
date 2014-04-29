@@ -9,6 +9,7 @@ public class OauthResponse {
 	private String instanceUrl;
 	private String signature;
 	private String accessToken;
+	private String tokenType;
 	
 	public String getId() {
 		return id;
@@ -43,4 +44,12 @@ public class OauthResponse {
 	public void setAccessToken(String accessToken) {
 		this.accessToken = accessToken;
 	}
+	@JsonProperty("token_type")
+	public String getTokenType() {
+		return tokenType;
+	}
+	public void setTokenType(String tokenType) {
+		this.tokenType = tokenType;
+	}
+	
 }

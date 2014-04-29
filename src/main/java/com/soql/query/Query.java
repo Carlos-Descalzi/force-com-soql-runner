@@ -3,7 +3,7 @@ package com.soql.query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QueryObject implements Term{
+public class Query implements Term{
 
 	private String name;
 	
@@ -19,6 +19,10 @@ public class QueryObject implements Term{
 
 	public List<Term> getTerms(){
 		return terms;
+	}
+	
+	public void add(Term term){
+		terms.add(term);
 	}
 	
 	public String toString(){

@@ -1,18 +1,12 @@
 package com.soql.query;
 
-public class QueryField 
+
+public class Field 
 	extends FieldTerm{
 
 	private String name;
 	
-	public QueryField(){
-		
-	}
-	
-	public QueryField(String name){
-		this.name = name;
-	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -24,4 +18,5 @@ public class QueryField
 	public String toString(){
 		return getAlias() == null ? name : getAlias();
 	}
+
 }

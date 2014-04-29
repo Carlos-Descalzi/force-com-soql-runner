@@ -14,7 +14,7 @@ import javax.swing.table.TableRowSorter;
 
 import org.codehaus.jackson.JsonNode;
 
-import com.soql.query.QueryObject;
+import com.soql.query.Query;
 
 @SuppressWarnings("serial")
 public class ResultsView 
@@ -24,7 +24,7 @@ public class ResultsView
 	private JTable table = new JTable();
 	private ResultTableModel model;
 
-	public ResultsView(JsonNode records, QueryObject fields){
+	public ResultsView(JsonNode records, Query fields){
 		setLayout(new BorderLayout());
 		model = new ResultTableModel(records,fields);
 		table.setDefaultRenderer(SubqueryResultTableModel.class, new SubQueryResultsRenderer());

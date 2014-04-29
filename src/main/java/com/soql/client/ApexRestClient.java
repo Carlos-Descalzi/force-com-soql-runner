@@ -97,7 +97,12 @@ public class ApexRestClient {
 				HttpResponse httpResponse = client.execute(post);
 				
 				if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
-					OauthResponse response = mapper.readValue(EntityUtils.toString(httpResponse.getEntity()), OauthResponse.class);
+					
+					String body = EntityUtils.toString(httpResponse.getEntity());
+					
+					System.out.println(body);
+					
+					OauthResponse response = mapper.readValue(body, OauthResponse.class);
 					
 					token = response.getAccessToken();
 					tokenTime = System.currentTimeMillis();

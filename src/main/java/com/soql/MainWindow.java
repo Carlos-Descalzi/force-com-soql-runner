@@ -47,7 +47,7 @@ import com.soql.editor.SOQLEditor;
 import com.soql.metadata.Field;
 import com.soql.parser.SOQLLexer;
 import com.soql.parser.SOQLParser;
-import com.soql.query.QueryObject;
+import com.soql.query.Query;
 
 @SuppressWarnings("serial")
 public class MainWindow 
@@ -67,6 +67,13 @@ public class MainWindow
 	private JFileChooser chooser;
 
 	private PrintWriter logsWriter = new PrintWriter(new JTextPaneWriter(logs));
+	
+	private Action newAction = new AbstractAction(Globals.BUNDLE.getString("mainWindow.action.new")){
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			createEditor();
+		}
+	};
 	
 	private Action openAction = new AbstractAction(Globals.BUNDLE.getString("mainWindow.action.open")){
 		@Override
@@ -175,7 +182,7 @@ public class MainWindow
 			public void mouseClicked(MouseEvent e){
 				if (e.getClickCount() == 2 && queriesView.getSelectedIndex() != -1){
 					String query = (String)queriesView.getSelectedValue();
-					createEditor().setText(query);
+					addText(query);
 				}
 			}
 		});
@@ -217,6 +224,7 @@ public class MainWindow
 		setJMenuBar(menuBar);
 		
 		JMenu fileMenu = new JMenu(Globals.BUNDLE.getString("mainWindow.menu.file"));
+		fileMenu.add(newAction);
 		fileMenu.add(openAction);
 		fileMenu.add(saveAction);
 		fileMenu.add(exitAction);
@@ -264,7 +272,7 @@ public class MainWindow
 			}
 		});
 
-		addTab(queryTabs,"New Query",new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+		addTab(queryTabs,"New Tab",new JScrollPane(queryEditor,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 
 		return queryEditor;
 	}
@@ -290,8 +298,24 @@ public class MainWindow
 		b.append(" from ");
 		b.append(selection.getObject().getName());
 		
-		createEditor().setText(b.toString());
 		
+		addText(b.toString());
+		
+	}
+	
+	private void addText(String text){
+		SOQLEditor editor = getCurrentEditor();
+		
+		int start = editor.getCaretPosition();
+		
+		String currentText = editor.getText();
+		if (currentText.trim().equals("")) {
+			editor.setText(text);
+		} else {
+			editor.setText(StringUtils.join(new String[]{currentText,text},"\n\n"));
+		}
+		editor.setSelectionStart(start);
+		editor.setSelectionEnd(editor.getDocument().getLength()-1);
 	}
 
 	private void login(){
@@ -436,19 +460,19 @@ public class MainWindow
 
 	private void showRecords(String query,final JsonNode records) throws Exception{
 		
-		QueryObject fields = parseQuery(query);
+		Query fields = parseQuery(query);
 		results.add(new ResultsView(records,fields));
 		results.setTabComponentAt(results.getTabCount()-1, new Tab(results, query));
 		results.setSelectedIndex(results.getTabCount()-1);
 		updateStatus();
 	}
 
-	private QueryObject parseQuery(String query) throws IOException {
+	private Query parseQuery(String query) throws IOException {
 		SOQLParser parser = new SOQLParser(new BufferedTokenStream(new SOQLLexer(new ANTLRInputStream(new StringReader(query)))));
 		QueryEvaluator evaluator = new QueryEvaluator();
 		parser.addParseListener(evaluator);
 		parser.query();
-		QueryObject fields = evaluator.getRoot();
+		Query fields = evaluator.getRoot();
 		return fields;
 	}
 	

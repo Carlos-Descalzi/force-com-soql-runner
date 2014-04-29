@@ -1,5 +1,6 @@
 package com.soql.query;
 
+
 public abstract class FieldTerm implements Term{
 
 	private String alias;

@@ -2,14 +2,14 @@ package com.soql;
 
 import org.codehaus.jackson.JsonNode;
 
-import com.soql.query.QueryObject;
+import com.soql.query.Query;
 
 @SuppressWarnings("serial")
 public class SubqueryResultTableModel extends ResultTableModel {
 
 	private boolean expanded = false;
 	
-	public SubqueryResultTableModel(JsonNode result, QueryObject fields) {
+	public SubqueryResultTableModel(JsonNode result, Query fields) {
 		super(result, fields);
 	}
 

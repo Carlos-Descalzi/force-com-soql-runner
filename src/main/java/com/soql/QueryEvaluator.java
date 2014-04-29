@@ -1,12 +1,13 @@
 package com.soql;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang.StringUtils;
 
 import com.soql.parser.SOQLListener;
 import com.soql.parser.SOQLParser.BoolExpContext;
@@ -17,31 +18,51 @@ import com.soql.parser.SOQLParser.FieldTermContext;
 import com.soql.parser.SOQLParser.FieldsContext;
 import com.soql.parser.SOQLParser.FuncRefContext;
 import com.soql.parser.SOQLParser.LiteralContext;
+import com.soql.parser.SOQLParser.NRowsContext;
 import com.soql.parser.SOQLParser.ObjContext;
+import com.soql.parser.SOQLParser.OrderingContext;
+import com.soql.parser.SOQLParser.OrderingTermContext;
 import com.soql.parser.SOQLParser.QueryContext;
 import com.soql.parser.SOQLParser.SimpleConditionContext;
 import com.soql.parser.SOQLParser.SubqueryContext;
 import com.soql.parser.SOQLParser.TermContext;
 import com.soql.parser.SOQLParser.TermsContext;
 import com.soql.parser.SOQLParser.ValueContext;
-import com.soql.query.FieldTerm;
-import com.soql.query.Function;
-import com.soql.query.QueryField;
-import com.soql.query.QueryObject;
-import com.soql.query.Term;
+import com.soql.query.Field;
+import com.soql.query.Query;
 
 public class QueryEvaluator implements SOQLListener {
-	private boolean collectFields = false;
-	private QueryObject root = new QueryObject();
-	private Term current;
-	private List<Term> path = new ArrayList<Term>();
-	
-	public QueryEvaluator(){
-		current = root;
+	private Query root;
+	private Query current;
+	private List<Query> stack = new ArrayList<Query>();
+	private Map<Query,Status> queryCaptureFields = new HashMap<Query,Status>();
+
+	private class Status {
+		boolean inFunction = false;
+		boolean capture = false;
 	}
 	
-	public QueryObject getRoot(){
+	public QueryEvaluator(){
+		root = new Query();
+		current = root;
+		queryCaptureFields.put(current, new Status());
+	}
+	
+	public Query getRoot(){
 		return root;
+	}
+	
+	private void push(){
+		stack.add(0,current);
+		current = new Query();
+		queryCaptureFields.put(current, new Status());
+	}
+
+	private void pop(){
+		Query previous = current;
+		current = stack.remove(0);
+		current.add(previous);
+		queryCaptureFields.remove(previous);
 	}
 	
 	@Override
@@ -57,49 +78,10 @@ public class QueryEvaluator implements SOQLListener {
 	public void visitTerminal(TerminalNode arg0) {}
 
 	@Override
-	public void enterConditions(ConditionsContext ctx) {}
+	public void enterOrderingTerm(OrderingTermContext ctx) {}
 
 	@Override
-	public void exitConditions(ConditionsContext ctx) {}
-
-	@Override
-	public void enterFuncRef(FuncRefContext ctx) {
-		current = new Function();
-	}
-
-	@Override
-	public void exitFuncRef(FuncRefContext ctx) {
-		((Function)current).setName(ctx.ID().getText());
-		String txt = ctx.getText();
-		
-		System.out.println(txt);
-		
-	}
-
-	@Override
-	public void enterFieldTerm(FieldTermContext ctx) {
-	}
-
-	@Override
-	public void exitFieldTerm(FieldTermContext ctx) {
-		if (collectFields){
-			((FieldTerm)current).setAlias(ctx.ALIAS() != null ? ctx.ALIAS().getText() : null);
-		}
-	}
-
-	@Override
-	public void enterField(FieldContext ctx) {
-		if (collectFields){
-			current = new QueryField();
-		}
-	}
-	
-	@Override
-	public void exitField(FieldContext ctx) {
-		if (collectFields){
-			((QueryField)current).setName(ctx.getText());
-		}
-	}
+	public void exitOrderingTerm(OrderingTermContext ctx) {}
 
 	@Override
 	public void enterBoolExp(BoolExpContext ctx) {}
@@ -120,48 +102,115 @@ public class QueryEvaluator implements SOQLListener {
 	public void exitQuery(QueryContext ctx) {}
 
 	@Override
+	public void enterTerms(TermsContext ctx) {
+		queryCaptureFields.get(current).capture = true;
+	}
+
+	@Override
+	public void exitTerms(TermsContext ctx) {
+		queryCaptureFields.get(current).capture = false;
+	}
+
+	@Override
+	public void enterNRows(NRowsContext ctx) {}
+
+	@Override
+	public void exitNRows(NRowsContext ctx) {}
+
+	@Override
+	public void enterSimpleCondition(SimpleConditionContext ctx) {}
+
+	@Override
+	public void exitSimpleCondition(SimpleConditionContext ctx) {}
+
+	@Override
+	public void enterSubquery(SubqueryContext ctx) {
+		push();
+	}
+
+	@Override
+	public void exitSubquery(SubqueryContext ctx) {
+		pop();
+	}
+
+	@Override
+	public void enterField(FieldContext ctx) {
+	}
+
+	@Override
+	public void exitField(FieldContext ctx) {
+		StringBuilder b = new StringBuilder();
+		for (int i=0;i<ctx.getChildCount();i++){
+			b.append(ctx.getChild(i));
+		}
+
+		Field field = new Field();
+		field.setName(b.toString());
+		if (queryCaptureFields.get(current).capture){
+			if (!queryCaptureFields.get(current).inFunction){
+				current.add(field);
+			} 
+		}
+	}
+
+	@Override
+	public void enterFuncRef(FuncRefContext ctx) {
+		queryCaptureFields.get(current).inFunction = true;
+	}
+
+	@Override
+	public void exitFuncRef(FuncRefContext ctx) {
+		StringBuilder b = new StringBuilder();
+		for (int i=0;i<ctx.getChildCount();i++){
+			b.append(ctx.getChild(i));
+		}
+
+		Field field = new Field();
+		field.setName(b.toString());
+		if (queryCaptureFields.get(current).capture){
+			if (queryCaptureFields.get(current).inFunction){
+				current.add(field);
+			} 
+		}
+	}
+
+	@Override
+	public void enterConditions(ConditionsContext ctx) {}
+
+	@Override
+	public void exitConditions(ConditionsContext ctx) {}
+
+	@Override
+	public void enterFieldTerm(FieldTermContext ctx) {}
+
+	@Override
+	public void exitFieldTerm(FieldTermContext ctx) {}
+
+	@Override
+	public void enterTerm(TermContext ctx) {}
+
+	@Override
+	public void exitTerm(TermContext ctx) {}
+
+	@Override
 	public void enterValue(ValueContext ctx) {}
 
 	@Override
 	public void exitValue(ValueContext ctx) {}
 
 	@Override
+	public void enterOrdering(OrderingContext ctx) {}
+
+	@Override
+	public void exitOrdering(OrderingContext ctx) {}
+
+	@Override
 	public void enterObj(ObjContext ctx) {}
 
 	@Override
 	public void exitObj(ObjContext ctx) {
-		if (current instanceof QueryObject){
-			((QueryObject)current).setName(ctx.getText());
-		}
+		current.setName(ctx.getText());
 	}
-	@Override
-	public void exitTerm(TermContext ctx) {
-		Term current = this.current;
-		this.current = path.remove(path.size()-1);
-		((QueryObject)this.current).getTerms().add(current);
-	}
-	@Override
-	public void enterTerm(TermContext ctx) {
-		path.add(current);
-		current = null;
-	}
-	@Override
-	public void enterTerms(TermsContext ctx) {
-		collectFields = true;
-		
-	}
-
-	@Override
-	public void exitTerms(TermsContext ctx) {
-		collectFields = false;
-	}
-
-	
-	@Override
-	public void enterSimpleCondition(SimpleConditionContext ctx) {}
-
-	@Override
-	public void exitSimpleCondition(SimpleConditionContext ctx) {}
 
 	@Override
 	public void enterLiteral(LiteralContext ctx) {}
@@ -174,19 +223,6 @@ public class QueryEvaluator implements SOQLListener {
 
 	@Override
 	public void exitFields(FieldsContext ctx) {}
-	
-	
-	@Override
-	public void enterSubquery(SubqueryContext ctx) {
-		path.add(current);
-		current = new QueryObject();
-	}
-	@Override
-	public void exitSubquery(SubqueryContext ctx) {
-		QueryObject parent = (QueryObject)path.remove(path.size()-1);
-		parent.getTerms().add(current);
-		current = parent;
-	}
-	
+
 
 }
