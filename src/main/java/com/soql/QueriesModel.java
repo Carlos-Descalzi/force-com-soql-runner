@@ -37,16 +37,23 @@ public class QueriesModel implements ListModel<String> {
 	
 	public void addQuery(String query){
 		if (queries.contains(query)){
+			int index = queries.indexOf(query);
 			queries.remove(query);
+			fireIntervalRemoved(index);
 		}
 		queries.add(0,query);
+		fireIntervalAdded();
+	}
+	private void fireIntervalAdded() {
 		ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, 0);
 		for (ListDataListener listener:listeners){
 			listener.intervalAdded(event);
 		}
-		event = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 1, queries.size()-1);
+	}
+	private void fireIntervalRemoved(int index) {
+		ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index);
 		for (ListDataListener listener:listeners){
-			listener.contentsChanged(event);
+			listener.intervalAdded(event);
 		}
 	}
 

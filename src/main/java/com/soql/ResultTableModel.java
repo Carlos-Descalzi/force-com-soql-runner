@@ -116,6 +116,15 @@ public class ResultTableModel extends AbstractTableModel {
 		return query;
 	}
 	
+	public boolean hasNestedResultSets(){
+		for (Term term:query.getTerms()){
+			if (term instanceof Query){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public List<List<Object>> getRawData(){
 		List<List<Object>> rawData = new ArrayList<List<Object>>();
 		

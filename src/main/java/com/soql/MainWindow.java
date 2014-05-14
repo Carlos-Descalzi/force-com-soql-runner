@@ -314,8 +314,9 @@ public class MainWindow
 		} else {
 			editor.setText(StringUtils.join(new String[]{currentText,text},"\n\n"));
 		}
+		editor.requestFocus();
 		editor.setSelectionStart(start);
-		editor.setSelectionEnd(editor.getDocument().getLength()-1);
+		editor.setSelectionEnd(editor.getDocument().getLength());
 	}
 
 	private void login(){
@@ -365,6 +366,9 @@ public class MainWindow
 	}
 	private SOQLEditor getCurrentEditor(){
 		int index = queryTabs.getSelectedIndex();
+		if (index == -1){
+			return createEditor();
+		}
 		return (SOQLEditor)((JScrollPane)queryTabs.getComponentAt(index)).getViewport().getView();
 	}
 
@@ -416,7 +420,7 @@ public class MainWindow
 			@Override
 			public void process(ApexRestClient client) throws ApexRestException{
 				try {
-					JsonNode result = client.doQuery(query.replaceAll("[\n\t ]+", " "));
+					JsonNode result = client.doQuery(query);
 					
 					JsonNode records = result.get("records");
 					
@@ -438,6 +442,7 @@ public class MainWindow
 		if (StringUtils.isBlank(query)){
 			query = editor.getText();
 		}
+		query.replaceAll("[\r\n\t ]+", " ");
 		return query;
 	}
 	
