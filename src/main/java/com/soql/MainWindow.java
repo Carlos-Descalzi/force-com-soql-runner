@@ -327,7 +327,7 @@ public class MainWindow
 			runLong(new Runnable(){
 				public void run(){
 					ApexRestClient client = new ApexRestClient(
-						"na15", "", 
+						"", 
 						login.getClientId(), 
 						login.getClientSecret(), 
 						login.getUserName(), 

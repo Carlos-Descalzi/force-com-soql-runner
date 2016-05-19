@@ -52,14 +52,12 @@ public class ApexRestClient {
 	private String serviceURL;
 	
 	@SuppressWarnings("deprecation")
-	public ApexRestClient(String instance,String applicationPackage, String clientId, String clientSecret, String user, String password){
+	public ApexRestClient(String applicationPackage, String clientId, String clientSecret, String user, String password){
 		
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.user = user;
 		this.password = password;
-		this.queryURL = "https://"+instance+".salesforce.com/services/data/v28.0/query/";
-		this.serviceURL = "https://"+instance+".salesforce.com/services/data/v29.0/";
 		
 		try {
 			SSLSocketFactory socketFactory = new SSLSocketFactory(
@@ -81,10 +79,25 @@ public class ApexRestClient {
 		mapper = new ObjectMapper();
 		mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
 	}
-		
-	private String getToken()
+	
+	private String getToken()throws ApexRestException{
+		connect();
+		return token;
+	}
+	
+	private String getQueryURL()throws ApexRestException{
+		connect();
+		return queryURL;
+	}
+	
+	private String getServiceURL()throws ApexRestException{
+		connect();
+		return serviceURL;
+	}
+	
+	private void connect()
 		throws ApexRestException{
-		if (token == null || (System.currentTimeMillis() - tokenTime > (60*60*1000))){
+		if (token == null || queryURL == null || serviceURL == null || (System.currentTimeMillis() - tokenTime > (60*60*1000))){
 			try {
 				HttpPost post = new HttpPost("https://login.salesforce.com/services/oauth2/token");
 				post.setEntity(new UrlEncodedFormEntity(Arrays.asList(
@@ -106,13 +119,18 @@ public class ApexRestClient {
 					
 					token = response.getAccessToken();
 					tokenTime = System.currentTimeMillis();
+					
+					this.queryURL = response.getInstanceUrl()+"/services/data/v28.0/query/";
+					this.serviceURL = response.getInstanceUrl()+"/services/data/v29.0/";
+
+				} else {
+					StatusLine status = httpResponse.getStatusLine();
+					System.out.println(status.getStatusCode()+":"+status.getReasonPhrase()+":"+httpResponse.getEntity().getContentType());
 				}
-				return token;
 			}catch (Exception ex){
 				throw new ApexRestException(ex);
 			}
 		}
-		return token;
 	}
 	
 	public JsonNode doQuery(String query)
@@ -137,12 +155,12 @@ public class ApexRestClient {
 	}
 
 	private String doGetQuery(String request) throws ApexRestException{
-		return execute(new HttpGet(queryURL+request));
+		return execute(new HttpGet(getQueryURL()+request));
 	}
 	public JsonNode doServiceGet(String request)
 		throws ApexRestException{
 		String result;
-		result = execute(new HttpGet(serviceURL+request));
+		result = execute(new HttpGet(getServiceURL()+request));
 		
 		if (StringUtils.isBlank(result)){
 			return null;
