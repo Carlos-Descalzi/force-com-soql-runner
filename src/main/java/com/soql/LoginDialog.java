@@ -35,14 +35,14 @@ public class LoginDialog extends JDialog {
 	private Action okAction = new AbstractAction("Ok") {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			accept();
+			LoginDialog.this.accept();
 		}
 	};
 	
 	private Action cancelAction = new AbstractAction("Cancel") {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			cancel();
+			LoginDialog.this.cancel();
 		}
 	};
 	

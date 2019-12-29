@@ -56,38 +56,38 @@ public class SOQLParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class QueryContext extends ParserRuleContext {
-		public TerminalNode LIMIT() { return getToken(SOQLParser.LIMIT, 0); }
-		public TerminalNode BY(int i) {
-			return getToken(SOQLParser.BY, i);
+		public ObjContext obj() {
+			return getRuleContext(ObjContext.class,0);
 		}
+		public TerminalNode LIMIT() { return getToken(SOQLParser.LIMIT, 0); }
 		public TermsContext terms() {
 			return getRuleContext(TermsContext.class,0);
 		}
-		public NRowsContext nRows() {
-			return getRuleContext(NRowsContext.class,0);
+		public TerminalNode FROM() { return getToken(SOQLParser.FROM, 0); }
+		public OrderingContext ordering() {
+			return getRuleContext(OrderingContext.class,0);
 		}
-		public TerminalNode SELECT() { return getToken(SOQLParser.SELECT, 0); }
-		public TerminalNode WHERE() { return getToken(SOQLParser.WHERE, 0); }
-		public FieldsContext fields() {
-			return getRuleContext(FieldsContext.class,0);
+		public TerminalNode GROUP() { return getToken(SOQLParser.GROUP, 0); }
+		public ConditionsContext conditions(int i) {
+			return getRuleContext(ConditionsContext.class,i);
 		}
 		public List<ConditionsContext> conditions() {
 			return getRuleContexts(ConditionsContext.class);
 		}
-		public ConditionsContext conditions(int i) {
-			return getRuleContext(ConditionsContext.class,i);
+		public NRowsContext nRows() {
+			return getRuleContext(NRowsContext.class,0);
 		}
 		public TerminalNode ORDER() { return getToken(SOQLParser.ORDER, 0); }
+		public TerminalNode WHERE() { return getToken(SOQLParser.WHERE, 0); }
+		public FieldsContext fields() {
+			return getRuleContext(FieldsContext.class,0);
+		}
+		public TerminalNode SELECT() { return getToken(SOQLParser.SELECT, 0); }
 		public TerminalNode HAVING() { return getToken(SOQLParser.HAVING, 0); }
 		public List<TerminalNode> BY() { return getTokens(SOQLParser.BY); }
-		public OrderingContext ordering() {
-			return getRuleContext(OrderingContext.class,0);
+		public TerminalNode BY(int i) {
+			return getToken(SOQLParser.BY, i);
 		}
-		public TerminalNode FROM() { return getToken(SOQLParser.FROM, 0); }
-		public ObjContext obj() {
-			return getRuleContext(ObjContext.class,0);
-		}
-		public TerminalNode GROUP() { return getToken(SOQLParser.GROUP, 0); }
 		public QueryContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -177,12 +177,12 @@ public class SOQLParser extends Parser {
 		public List<TermContext> term() {
 			return getRuleContexts(TermContext.class);
 		}
+		public TermContext term(int i) {
+			return getRuleContext(TermContext.class,i);
+		}
 		public List<TerminalNode> COMMA() { return getTokens(SOQLParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(SOQLParser.COMMA, i);
-		}
-		public TermContext term(int i) {
-			return getRuleContext(TermContext.class,i);
 		}
 		public TermsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -234,15 +234,15 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class FieldsContext extends ParserRuleContext {
+		public List<TerminalNode> COMMA() { return getTokens(SOQLParser.COMMA); }
 		public FieldContext field(int i) {
 			return getRuleContext(FieldContext.class,i);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(SOQLParser.COMMA); }
-		public List<FieldContext> field() {
-			return getRuleContexts(FieldContext.class);
-		}
 		public TerminalNode COMMA(int i) {
 			return getToken(SOQLParser.COMMA, i);
+		}
+		public List<FieldContext> field() {
+			return getRuleContexts(FieldContext.class);
 		}
 		public FieldsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -294,12 +294,12 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class OrderingContext extends ParserRuleContext {
-		public OrderingTermContext orderingTerm(int i) {
-			return getRuleContext(OrderingTermContext.class,i);
-		}
-		public TerminalNode COMMA() { return getToken(SOQLParser.COMMA, 0); }
 		public List<OrderingTermContext> orderingTerm() {
 			return getRuleContexts(OrderingTermContext.class);
+		}
+		public TerminalNode COMMA() { return getToken(SOQLParser.COMMA, 0); }
+		public OrderingTermContext orderingTerm(int i) {
+			return getRuleContext(OrderingTermContext.class,i);
 		}
 		public OrderingContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -340,8 +340,8 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class OrderingTermContext extends ParserRuleContext {
-		public TerminalNode DESC() { return getToken(SOQLParser.DESC, 0); }
 		public TerminalNode ASC() { return getToken(SOQLParser.ASC, 0); }
+		public TerminalNode DESC() { return getToken(SOQLParser.DESC, 0); }
 		public FieldContext field() {
 			return getRuleContext(FieldContext.class,0);
 		}
@@ -441,11 +441,11 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class FieldTermContext extends ParserRuleContext {
-		public FieldContext field() {
-			return getRuleContext(FieldContext.class,0);
-		}
 		public FuncRefContext funcRef() {
 			return getRuleContext(FuncRefContext.class,0);
+		}
+		public FieldContext field() {
+			return getRuleContext(FieldContext.class,0);
 		}
 		public FieldTermContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -503,12 +503,12 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class FuncRefContext extends ParserRuleContext {
+		public TerminalNode ID() { return getToken(SOQLParser.ID, 0); }
 		public TermContext term() {
 			return getRuleContext(TermContext.class,0);
 		}
-		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
 		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
-		public TerminalNode ID() { return getToken(SOQLParser.ID, 0); }
+		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
 		public FuncRefContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -547,13 +547,13 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class FieldContext extends ParserRuleContext {
-		public List<TerminalNode> DOT() { return getTokens(SOQLParser.DOT); }
 		public List<TerminalNode> ID() { return getTokens(SOQLParser.ID); }
-		public TerminalNode DOT(int i) {
-			return getToken(SOQLParser.DOT, i);
-		}
+		public List<TerminalNode> DOT() { return getTokens(SOQLParser.DOT); }
 		public TerminalNode ID(int i) {
 			return getToken(SOQLParser.ID, i);
+		}
+		public TerminalNode DOT(int i) {
+			return getToken(SOQLParser.DOT, i);
 		}
 		public FieldContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -605,11 +605,11 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class SubqueryContext extends ParserRuleContext {
-		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
-		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
 		public QueryContext query() {
 			return getRuleContext(QueryContext.class,0);
 		}
+		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
+		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
 		public SubqueryContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -683,17 +683,17 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class ConditionsContext extends ParserRuleContext {
-		public List<ConditionContext> condition() {
-			return getRuleContexts(ConditionContext.class);
-		}
-		public BoolExpContext boolExp(int i) {
-			return getRuleContext(BoolExpContext.class,i);
-		}
 		public List<BoolExpContext> boolExp() {
 			return getRuleContexts(BoolExpContext.class);
 		}
 		public ConditionContext condition(int i) {
 			return getRuleContext(ConditionContext.class,i);
+		}
+		public BoolExpContext boolExp(int i) {
+			return getRuleContext(BoolExpContext.class,i);
+		}
+		public List<ConditionContext> condition() {
+			return getRuleContexts(ConditionContext.class);
 		}
 		public ConditionsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -745,9 +745,9 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class BoolExpContext extends ParserRuleContext {
+		public TerminalNode NOT() { return getToken(SOQLParser.NOT, 0); }
 		public TerminalNode AND() { return getToken(SOQLParser.AND, 0); }
 		public TerminalNode OR() { return getToken(SOQLParser.OR, 0); }
-		public TerminalNode NOT() { return getToken(SOQLParser.NOT, 0); }
 		public BoolExpContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -808,8 +808,8 @@ public class SOQLParser extends Parser {
 		public SimpleConditionContext simpleCondition() {
 			return getRuleContext(SimpleConditionContext.class,0);
 		}
-		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
 		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
+		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
 		public ConditionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -860,23 +860,23 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class SimpleConditionContext extends ParserRuleContext {
-		public TerminalNode IN() { return getToken(SOQLParser.IN, 0); }
-		public ValueContext value(int i) {
-			return getRuleContext(ValueContext.class,i);
-		}
-		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
-		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
 		public List<ValueContext> value() {
 			return getRuleContexts(ValueContext.class);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(SOQLParser.COMMA); }
-		public FieldContext field() {
-			return getRuleContext(FieldContext.class,0);
+		public ValueContext value(int i) {
+			return getRuleContext(ValueContext.class,i);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(SOQLParser.COMMA); }
+		public TerminalNode LPAR() { return getToken(SOQLParser.LPAR, 0); }
+		public TerminalNode RPAR() { return getToken(SOQLParser.RPAR, 0); }
+		public TerminalNode OPERATOR() { return getToken(SOQLParser.OPERATOR, 0); }
+		public TerminalNode IN() { return getToken(SOQLParser.IN, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(SOQLParser.COMMA, i);
 		}
-		public TerminalNode OPERATOR() { return getToken(SOQLParser.OPERATOR, 0); }
+		public FieldContext field() {
+			return getRuleContext(FieldContext.class,0);
+		}
 		public SimpleConditionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -946,11 +946,11 @@ public class SOQLParser extends Parser {
 	}
 
 	public static class ValueContext extends ParserRuleContext {
-		public FieldContext field() {
-			return getRuleContext(FieldContext.class,0);
-		}
 		public LiteralContext literal() {
 			return getRuleContext(LiteralContext.class,0);
+		}
+		public FieldContext field() {
+			return getRuleContext(FieldContext.class,0);
 		}
 		public ValueContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1003,8 +1003,8 @@ public class SOQLParser extends Parser {
 
 	public static class LiteralContext extends ParserRuleContext {
 		public TerminalNode NUMERIC() { return getToken(SOQLParser.NUMERIC, 0); }
-		public TerminalNode BOOLEAN() { return getToken(SOQLParser.BOOLEAN, 0); }
 		public TerminalNode STRING() { return getToken(SOQLParser.STRING, 0); }
+		public TerminalNode BOOLEAN() { return getToken(SOQLParser.BOOLEAN, 0); }
 		public LiteralContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
