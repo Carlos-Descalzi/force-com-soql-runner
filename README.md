@@ -11,3 +11,4 @@ Features
 * Export to CSV.
 * Results for subqueries.
 
+![screenshot](screenshot.png)
